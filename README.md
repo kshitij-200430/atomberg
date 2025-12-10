@@ -1,4 +1,4 @@
-# battery-campaign
+# battery-check
 
 Simple weekly script to notify users whose locks haven't had a battery check in 30 days.
 Minimal Python version. No Flask. Tracking server uses Python stdlib.
