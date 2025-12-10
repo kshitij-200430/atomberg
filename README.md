@@ -1,38 +1,72 @@
-# battery-check
+# Battery Check Reminder Script
 
-Simple weekly script to notify users whose locks haven't had a battery check in 30 days.
-Minimal Python version. No Flask. Tracking server uses Python stdlib.
+This project has one main job.  
+It checks which locks have not had their battery checked in the last 30 days and sends a push notification to the users linked to those locks.
 
-## Files
-- send_weekly_notifications.py  -> scan DynamoDB, query Postgres, send FCM messages
-- track_server_simple.py       -> tiny HTTP server that logs clicks into Postgres
-- db_schema.sql                -> Postgres tables to create
-- .env.example                 -> environment variables
+The lock data comes from DynamoDB.  
+The user mapping comes from PostgreSQL.  
+The notifications are sent using Firebase Cloud Messaging (FCM).
 
-## Setup
-1. Create Postgres tables:
-   psql -h <host> -U <user> -d <db> -f db_schema.sql
+---
 
-2. Create a Firebase service account JSON and put path in .env
+## How it works
 
-3. Copy .env.example to .env and fill values.
+1. Read all locks from DynamoDB.
+2. Find the ones where the last battery check is older than 30 days.
+3. Look up which user is connected to each lock in PostgreSQL.
+4. Send an FCM notification to those users.
 
-4. Install deps:
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
+---
 
-## Run for testing
-1. Start tracking server (public domain recommended for real use):
-   python track_server_simple.py
+## Files in this project
 
-2. Run sender:
-   python send_weekly_notifications.py
+- `script.py`  
+  This is the main file. It does everything in one place.
 
-## Schedule
-Use cron or EventBridge to run send_weekly_notifications.py weekly.
+---
 
-## Notes
-- DynamoDB `locks` table must have `lock_id` (string) and `last_battery_check` (ISO string).
-- Postgres `lock_user_mapping` must have `lock_id`, `user_id`, `fcm_id`.
-- Tracking works by opening the URL in the notification; it inserts a row into `notification_clicks`.
+## What you need before running
+
+Create a `.env` file in the same folder:
+
+AWS_REGION=ap-south-1
+DYNAMO_TABLE=locks
+
+PG_HOST=sample-rds-host.amazonaws.com
+PG_PORT=5432
+PG_USER=sample_user
+PG_PASSWORD=sample_password
+PG_DATABASE=sample_db
+
+FCM_SERVICE_ACCOUNT_JSON=./serviceAccountKey.json
+
+
+Download your Firebase service account JSON and save it as `serviceAccountKey.json`.
+
+You also need:
+pip install boto3 psycopg2-binary firebase-admin python-dotenv
+
+---
+
+## How to run
+
+Run the script with:
+
+python script.py
+
+This script can also be set to run weekly using cron or any scheduler.
+
+---
+
+## Example table structure
+
+**DynamoDB (locks):**
+- lock_id  
+- last_battery_check  
+
+**PostgreSQL (lock_user_mapping):**
+- lock_id  
+- user_id  
+- fcm_id  
+
+---
