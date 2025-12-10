@@ -1,12 +1,5 @@
 # Battery Check Reminder Script
 
-This project has one main job.  
-It checks which locks have not had their battery checked in the last 30 days and sends a push notification to the users linked to those locks.
-
-The lock data comes from DynamoDB.  
-The user mapping comes from PostgreSQL.  
-The notifications are sent using Firebase Cloud Messaging (FCM).
-
 ---
 
 ## How it works
@@ -70,3 +63,4 @@ This script can also be set to run weekly using cron or any scheduler.
 - fcm_id  
 
 ---
+
