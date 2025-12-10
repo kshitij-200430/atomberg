@@ -39,4 +39,4 @@ The notification includes a `click_url` in the message data that points to a tra
 
 
 ## Run
-
+battery-script.py
