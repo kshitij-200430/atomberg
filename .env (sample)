@@ -1,0 +1,4 @@
+aws_region=ap-south-1
+dynamo_table=locks
+pg_conn=host=localhost dbname=testdb user=test password=test123
+service_file=keyfile.json
