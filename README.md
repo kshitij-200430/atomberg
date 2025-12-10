@@ -2,65 +2,41 @@
 
 ---
 
-## How it works
-
-1. Read all locks from DynamoDB.
-2. Find the ones where the last battery check is older than 30 days.
-3. Look up which user is connected to each lock in PostgreSQL.
-4. Send an FCM notification to those users.
-
----
-
-## Files in this project
-
-- `script.py`  
-  This is the main file. It does everything in one place.
-
----
-
-## What you need before running
-
-Create a `.env` file in the same folder:
-
-AWS_REGION=ap-south-1
-DYNAMO_TABLE=locks
-
-PG_HOST=sample-rds-host.amazonaws.com
-PG_PORT=5432
-PG_USER=sample_user
-PG_PASSWORD=sample_password
-PG_DATABASE=sample_db
-
-FCM_SERVICE_ACCOUNT_JSON=./serviceAccountKey.json
+## What it does
 
 
-Download your Firebase service account JSON and save it as `serviceAccountKey.json`.
+1. Scans DynamoDB table `locks` for `last_checked` older than 30 days.
+2. Looks up users and their `fcm_id` from Postgres table `lock_user_mapping`.
+3. Sends an FCM notification to each `fcm_id`.
+4. Writes a CSV `sends_YYYYMMDD.csv` with results.
 
-You also need:
-pip install boto3 psycopg2-binary firebase-admin python-dotenv
 
----
+## Tracking clicks / measuring effectiveness
 
-## How to run
 
-Run the script with:
+The notification includes a `click_url` in the message data that points to a tracking endpoint you must provide. When users click, that endpoint should record the click (campaign, user, lock). Weekly you can compare number of clicks vs number of notifications sent from the CSV to measure effectiveness.
 
-python script.py
 
-This script can also be set to run weekly using cron or any scheduler.
+## Requirements
 
----
 
-## Example table structure
+- Python 3.9+
+- boto3
+- psycopg2-binary
+- firebase-admin
 
-**DynamoDB (locks):**
-- lock_id  
-- last_battery_check  
 
-**PostgreSQL (lock_user_mapping):**
-- lock_id  
-- user_id  
-- fcm_id  
+## Setup
 
----
+
+1. Put your Firebase service account JSON path in env var `FIREBASE_SERVICE_ACCOUNT` or name the file `serviceAccount.json`.
+2. Set env vars:
+- `AWS_REGION` (default `ap-south-1`)
+- `DYNAMO_TABLE` (default `locks`)
+- `PG_CONN` (e.g. `host=... dbname=... user=... password=...`)
+3. Ensure DynamoDB `locks` items have `lock_id` and `last_checked` (ISO8601 or unix seconds).
+4. Ensure Postgres table `lock_user_mapping(lock_id, user_id, fcm_id)` exists.
+
+
+## Run
 
